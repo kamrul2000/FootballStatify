@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyApp.Data;
+using MyApp.Dto;
 using MyApp.Models;
 
 namespace MyApp.Controllers
@@ -42,24 +43,30 @@ namespace MyApp.Controllers
 
         // POST: api/matches
         [HttpPost]
-        public async Task<ActionResult<Match>> PostMatch(Match match)
+        public async Task<ActionResult<Match>> PostMatch(CreateMatchDto dto)
         {
+            var match = new Match
+            {
+                Title = dto.Title,
+                TeamAId = dto.TeamAId,
+                TeamBId = dto.TeamBId,
+                MatchDate = dto.MatchDate,
+                Venue = dto.Venue
+            };
+
             _context.Matches.Add(match);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetMatch), new { id = match.Id }, match);
+            // Load teams to include in the response
+            var createdMatch = await _context.Matches
+                .Include(m => m.TeamA)
+                .Include(m => m.TeamB)
+                .FirstOrDefaultAsync(m => m.Id == match.Id);
+
+            return CreatedAtAction(nameof(GetMatch), new { id = match.Id }, createdMatch);
         }
 
-        // PUT: api/matches/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutMatch(int id, Match match)
-        {
-            if (id != match.Id) return BadRequest();
 
-            _context.Entry(match).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return NoContent();
-        }
 
         // DELETE: api/matches/5
         [HttpDelete("{id}")]

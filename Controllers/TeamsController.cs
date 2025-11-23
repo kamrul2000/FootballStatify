@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyApp.Data;
+using MyApp.Dto;
 using MyApp.Models;
 
 namespace MyApp.Controllers
@@ -35,11 +36,19 @@ namespace MyApp.Controllers
 
         // POST: api/teams
         [HttpPost]
-        public async Task<ActionResult<Team>> PostTeam(Team team)
+        public async Task<ActionResult<Team>> PostTeam(CreateTeamDto dto)
         {
+            var team = new Team
+            {
+                Name = dto.Name,
+                Coach = dto.Coach,
+                FoundingYear = dto.FoundingYear
+            };
+
             _context.Teams.Add(team);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetTeam), new { id = team.Id }, team);
+
+            return Ok(team);
         }
 
 

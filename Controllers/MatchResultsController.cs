@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyApp.Data;
+using MyApp.Dto;
 using MyApp.Models;
 
 namespace MyApp.Controllers
@@ -43,23 +44,38 @@ namespace MyApp.Controllers
 
             return result;
         }
-
-        // POST api/matchresults
         [HttpPost]
-        public async Task<ActionResult<MatchResult>> PostMatchResult(MatchResult result)
+        public async Task<ActionResult<MatchResult>> PostMatchResult(CreateMatchResultDto dto)
         {
-            // Auto calculate winner
-            if (result.TeamAGoals > result.TeamBGoals)
-                result.Winner = "Team A";
-            else if (result.TeamBGoals > result.TeamAGoals)
-                result.Winner = "Team B";
-            else
-                result.Winner = "Draw";
+            var matchResult = new MatchResult
+            {
+                MatchId = dto.MatchId,
+                TeamAGoals = dto.TeamAGoals,
+                TeamBGoals = dto.TeamBGoals,
+            };
 
-            _context.MatchResults.Add(result);
+            // Auto-calculate winner
+            matchResult.Winner = matchResult.TeamAGoals > matchResult.TeamBGoals ? "Team A" :
+                                 matchResult.TeamBGoals > matchResult.TeamAGoals ? "Team B" : "Draw";
+
+            _context.MatchResults.Add(matchResult);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetMatchResult), new { id = result.Id }, result);
+            // Add PlayerStats for scorers
+            foreach (var scorer in dto.Scorers)
+            {
+                var playerStat = new PlayerStat
+                {
+                    PlayerId = scorer.PlayerId,
+                    MatchId = dto.MatchId,
+                    Goals = scorer.Goals
+                };
+                _context.PlayerStats.Add(playerStat);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetMatchResult), new { id = matchResult.Id }, matchResult);
         }
 
 
