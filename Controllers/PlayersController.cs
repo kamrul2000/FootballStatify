@@ -39,7 +39,40 @@ namespace MyApp.Controllers
             _context.Players.Add(player);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetPlayer), new { id = player.Id }, player);
-        }     
+        }
+
+        // PUT: api/players/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdatePlayer(int id, Player player)
+        {
+            if (id != player.Id) return BadRequest();
+
+            var existing = await _context.Players.FindAsync(id);
+            if (existing == null) return NotFound();
+
+            existing.Name = player.Name;
+            existing.Position = player.Position;
+            existing.Age = player.Age;
+            existing.TeamId = player.TeamId;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.MatchResults.AnyAsync(r => r.Id == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
 
         // DELETE: api/players/5
         [HttpDelete("{id}")]

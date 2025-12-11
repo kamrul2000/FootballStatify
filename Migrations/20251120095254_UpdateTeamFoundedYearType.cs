@@ -5,7 +5,7 @@
 namespace MyApp.Migrations
 {
     /// <inheritdoc />
-    public partial class PlayerStat : Migration
+    public partial class UpdateTeamFoundedYearType : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

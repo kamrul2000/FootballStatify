@@ -56,6 +56,37 @@ namespace MyApp.Controllers
             return CreatedAtAction(nameof(GetPlayerStats), new { id = stat.Id }, stat);
         }
 
+        // PUT: api/playerstats/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdatePlayerStat(int id, PlayerStat stat)
+        {
+            if (id != stat.Id) return BadRequest();
+
+            var existing = await _context.PlayerStats.FindAsync(id);
+            if (existing == null) return NotFound();
+
+            existing.PlayerId = stat.PlayerId;
+            existing.MatchId = stat.MatchId;
+            existing.Goals = stat.Goals;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.MatchResults.AnyAsync(r => r.Id == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
 
         // DELETE: api/playerstats/5
         [HttpDelete("{id}")]

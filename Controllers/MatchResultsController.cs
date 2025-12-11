@@ -62,7 +62,45 @@ namespace MyApp.Controllers
             return CreatedAtAction(nameof(GetMatchResult), new { id = result.Id }, result);
         }
 
+        // PUT api/matchresults/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateMatchResult(int id, MatchResult result)
+        {
+            if (id != result.Id) return BadRequest();
 
+            var existing = await _context.MatchResults.FindAsync(id);
+            if (existing == null) return NotFound();
+
+            existing.MatchId = result.MatchId;
+            existing.TeamAGoals = result.TeamAGoals;
+            existing.TeamBGoals = result.TeamBGoals;
+
+            // Recalculate winner
+            if (existing.TeamAGoals > existing.TeamBGoals)
+                existing.Winner = "Team A";
+            else if (existing.TeamBGoals > existing.TeamAGoals)
+                existing.Winner = "Team B";
+            else
+                existing.Winner = "Draw";
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.MatchResults.AnyAsync(r => r.Id == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
 
         // DELETE
         [HttpDelete("{id}")]

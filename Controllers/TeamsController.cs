@@ -35,13 +35,45 @@ namespace MyApp.Controllers
 
         // POST: api/teams
         [HttpPost]
-        public async Task<ActionResult<Team>> PostTeam(Team team)
+        public async Task<ActionResult<Team>> CreateTeam(Team team)
         {
             _context.Teams.Add(team);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetTeam), new { id = team.Id }, team);
         }
 
+        // PUT: api/teams/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateTeam(int id, Team team)
+        {
+            if (id != team.Id) return BadRequest();
+
+            var existing = await _context.Teams.FindAsync(id);
+            if (existing == null) return NotFound();
+
+            // Update scalar properties only to avoid unintentionally replacing navigation collections
+            existing.Name = team.Name;
+            existing.Coach = team.Coach;
+            existing.FoundingYear = team.FoundingYear;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.MatchResults.AnyAsync(r => r.Id == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
 
         // DELETE: api/teams/5
         [HttpDelete("{id}")]

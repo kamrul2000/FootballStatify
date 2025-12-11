@@ -12,8 +12,8 @@ using MyApp.Data;
 namespace MyApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251116105242_PlayerStat")]
-    partial class PlayerStat
+    [Migration("20251120095254_UpdateTeamFoundedYearType")]
+    partial class UpdateTeamFoundedYearType
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -117,7 +117,33 @@ namespace MyApp.Migrations
                     b.ToTable("Players");
                 });
 
-            modelBuilder.Entity("MyApp.Models.Team", b =>
+            modelBuilder.Entity("MyApp.Models.PlayerStat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Goals")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MatchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("PlayerStats");
+                });
+
+            modelBuilder.Entity("Team", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -128,6 +154,9 @@ namespace MyApp.Migrations
                     b.Property<string>("Coach")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("FoundingYear")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -140,13 +169,13 @@ namespace MyApp.Migrations
 
             modelBuilder.Entity("MyApp.Models.Match", b =>
                 {
-                    b.HasOne("MyApp.Models.Team", "TeamA")
+                    b.HasOne("Team", "TeamA")
                         .WithMany()
                         .HasForeignKey("TeamAId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MyApp.Models.Team", "TeamB")
+                    b.HasOne("Team", "TeamB")
                         .WithMany()
                         .HasForeignKey("TeamBId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -170,7 +199,7 @@ namespace MyApp.Migrations
 
             modelBuilder.Entity("MyApp.Models.Player", b =>
                 {
-                    b.HasOne("MyApp.Models.Team", "Team")
+                    b.HasOne("Team", "Team")
                         .WithMany("Players")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -179,7 +208,26 @@ namespace MyApp.Migrations
                     b.Navigation("Team");
                 });
 
-            modelBuilder.Entity("MyApp.Models.Team", b =>
+            modelBuilder.Entity("MyApp.Models.PlayerStat", b =>
+                {
+                    b.HasOne("MyApp.Models.Match", "Match")
+                        .WithMany()
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MyApp.Models.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+
+                    b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("Team", b =>
                 {
                     b.Navigation("Players");
                 });

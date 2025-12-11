@@ -1,12 +1,13 @@
-﻿namespace MyApp.Models
-{
-    public class Team
-    {
-        public int Id { get; set; }         // Primary Key
-        public string Name { get; set; }    // Team Name
-        public string Coach { get; set; }   // Coach Name
+﻿using MyApp.Models;
+using System.Text.Json.Serialization;
 
-        // Navigation property: One team has many players
-        public List<Player> Players { get; set; }
-    }
+public class Team
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public string Coach { get; set; } = null!;
+    public int FoundingYear { get; set; }
+
+    [JsonIgnore]                // Ignore in JSON (optional)
+    public List<Player> Players { get; set; } = new List<Player>();
 }

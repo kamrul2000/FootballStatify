@@ -52,12 +52,35 @@ namespace MyApp.Controllers
 
         // PUT: api/matches/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMatch(int id, Match match)
+        public async Task<IActionResult> UpdateMatch(int id, Match match)
         {
             if (id != match.Id) return BadRequest();
 
-            _context.Entry(match).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            var existing = await _context.Matches.FindAsync(id);
+            if (existing == null) return NotFound();
+
+            existing.Title = match.Title;
+            existing.TeamAId = match.TeamAId;
+            existing.TeamBId = match.TeamBId;
+            existing.MatchDate = match.MatchDate;
+            existing.Venue = match.Venue;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.MatchResults.AnyAsync(r => r.Id == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
             return NoContent();
         }
 
