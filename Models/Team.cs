@@ -1,13 +1,18 @@
-﻿using MyApp.Models;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
-public class Team
+namespace MyApp.Models
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = null!;
-    public string Coach { get; set; } = null!;
-    public int FoundingYear { get; set; }
+    public class Team
+    {
+        public int Id { get; set; }         // Primary Key
+        public string Name { get; set; }    // Team Name
+        public string Coach { get; set; }   // Coach Name
 
-    [JsonIgnore]                // Ignore in JSON (optional)
-    public List<Player> Players { get; set; } = new List<Player>();
+        public int FoundingYear { get; set; } // Year the team was founded
+
+        // Navigation property: One team has many players
+        [JsonIgnore]
+
+        public List<Player> Players { get; set; }
+    }
 }
